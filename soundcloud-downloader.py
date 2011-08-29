@@ -12,7 +12,7 @@ def get_dl_url(htmlsource):
 		image = repr(match.group())
 		break
 
-	id = m = re.split('http://(.*?)/(.*?)_m.png"', image)[2]
+	id = re.split('http://(.*?)/(.*?)_m.png"', image)[2]
 
 	url = "http://media.soundcloud.com/stream/%s" % id
 
