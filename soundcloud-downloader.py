@@ -2,6 +2,7 @@
 # 13/04/13
 import urllib2, sys, re
 import urllib
+#import urllib
 
 if len(sys.argv) <= 1:
 	exit("You need to enter a URI to download from")
@@ -71,8 +72,17 @@ def main():
 	
 	# copy the download URL's content (the full song) to a file 
 	# with a filename that matches our song's title
-	urllib.urlretrieve(url, title)
-	print "Download Complete"
+	#urllib.urlretrieve(url, title)
+	filename, headers = urllib.urlretrieve(url=url, filename=title, reporthook=report)
+	print "\n\nDownload Complete"
+
+def report(block_no, block_size, file_size):
+	global download_progress
+	download_progress += block_size
+	
+	sys.stdout.write("\rDownloading (%.2fMB/%.2fMB): %.2f%% / 100%%" % (download_progress/1024/1024.00, file_size/1024.00/1024.00, 100 * float(download_progress)/float(file_size)) )
+	sys.stdout.flush()
 
 if __name__ == '__main__':
+	download_progress = 0
 	main()
