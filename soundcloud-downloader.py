@@ -1,4 +1,5 @@
-﻿#!/usr/bin/python2
+﻿#!/usr/bin/python
+# 13/04/13
 import urllib2, sys, re
 import urllib
 
@@ -26,7 +27,7 @@ def get_dl_url(htmlsource):
 
 def get_title(htmlsource):
 	# regular expression for the string we will search for in htmlsource
-	regexp = "<title>(.*?)\son\sSoundCloud\s-\sCreate,\srecord\sand\sshare\syour\ssounds\sfor\sfree</title>"
+	regexp = "<title>(.*?)\son\sSoundCloud.*</title>"
 
 	# find the first match that occurs, if any
 	first_match = re.search(regexp, htmlsource)
