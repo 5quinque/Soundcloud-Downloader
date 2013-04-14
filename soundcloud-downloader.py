@@ -3,30 +3,28 @@
 import urllib, urllib2, sys, re
 
 if len(sys.argv) <= 1:
-	exit("You need to enter a soundcloud URI\nI.E:\n $./ %s https://soundcloud/user/song" % sys.argv[0])
+	exit("You need to enter a soundcloud URI\nI.E:\n $./ %s http://soundcloud/user/song" % sys.argv[0])
 
 def get_dl_url(htmlsource):
 	# regular expression for the string we will search for in htmlsource 
-	regexp = '<img class="waveform"\ssrc="http://(.+?)/(.*?)_m.png" unselectable="on" />'
+	regexp = '<img\sclass="waveform"\ssrc="http://[^/]*/(\w*)_m.png"\sunselectable="on"\s/>'
 	
 	# find the first match that occurs, if any
-	first_match = re.search(regexp, htmlsource)
+	match = re.search(regexp, htmlsource)
 	
-	if first_match:
+	if match:
 		# if we found a match, retrieve the song ID
-		id = first_match.group(2)
-		
+		songid = match.group(1)	
 		# create a new stream hyperlink with the song ID
-		url = "http://media.soundcloud.com/stream/%s" % id
+		url = "http://media.soundcloud.com/stream/%s" % songid
 	else:
-		print "No waveform image found at %s. Exiting." % sys.argv[1]
-		sys.exit()
+		sys.exit("No waveform image found at %s. Exiting." % sys.argv[1])
 	
 	return url
 
 def get_title(htmlsource):
 	# regular expression for the string we will search for in htmlsource
-	regexp = "<title>([^by]*)by\s(\w*)\son\sSoundCloud.*</title>"
+	regexp = "<title>(.*?)by\s([\w'\s]*)\son\sSoundCloud.*</title>"
 
 	match = re.search(regexp, htmlsource)
 	
@@ -35,13 +33,13 @@ def get_title(htmlsource):
 		title = "%s - %s.mp3" % (match.group(1), match.group(2)) #\1 Songtitle \2 Artist
 	else:
 		sys.exit("No title data for song at %s. Exiting." % sys.argv[1])
-	
+	print title
 	return title
 
 def main():
 	print "Getting Information... "
 	
-	# retrieve the URL of the song to download from the final command-line argument
+	# retrieve the URL of the song to download, from the final command-line argument
 	soundcloud_url = sys.argv[-1]
 	
 	try:
@@ -49,7 +47,7 @@ def main():
 		html = urllib2.urlopen(soundcloud_url)
 	except ValueError:
 		# the user supplied URL is invalid or could not be retrieved 
-		exit("Error: The URL '%s' can not be retrieved" % soundcloud_url)
+		sys.exit("Error: The URL '%s' can not be retrieved" % soundcloud_url)
 		
 	# store the contents (source) of our song's URL
 	htmlsource = html.read()
