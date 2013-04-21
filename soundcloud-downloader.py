@@ -30,10 +30,11 @@ def get_title(htmlsource):
 	
 	if match:
 		# if we found a match, retrieve the title of the song
-		title = "%s - %s.mp3" % (match.group(1), match.group(2)) #\1 Songtitle \2 Artist
+		#title = "%s - %s.mp3" % (match.group(1), match.group(2)) #\1 Songtitle \2 Artist
+		title = [match.group(1), match.group(2)]
 	else:
 		sys.exit("No title data for song at %s. Exiting." % sys.argv[1])
-	print title
+	
 	return title
 
 def main():
@@ -54,7 +55,8 @@ def main():
 	html.close()
 	
 	# get our song's title from its HTML contents
-	title = get_title(htmlsource)
+	songinfo = get_title(htmlsource)
+	title  = "%s - %s.mp3" % (songinfo[0], songinfo[1])
 	
 	# get our song's actual download URL from its HTML contents
 	url = get_dl_url(htmlsource)
@@ -65,6 +67,8 @@ def main():
 	# with a filename that matches our song's title
 	filename, headers = urllib.urlretrieve(url=url, filename=title, reporthook=report)
 	print "\n\nDownload Complete"
+	print "Attempting to add ID3 tags"
+	add_id3_tags(title, songinfo[0], songinfo[1])
 
 def report(block_no, block_size, file_size):
 	global download_progress
@@ -73,6 +77,23 @@ def report(block_no, block_size, file_size):
 	sys.stdout.write("\rDownloading (%.2fMB/%.2fMB): %.2f%% / 100%%" 
 		% (download_progress/1024.00/1024.00, file_size/1024.00/1024.00, 100 * float(download_progress)/float(file_size)) )
 	sys.stdout.flush()
+
+def add_id3_tags(filename, title, artist):
+	try:
+		from ID3 import *
+	except ImportError:
+		print "ID3 Tags will not be added to the MP3 as the ID3 module is not installed\n# sudo apt-get install python-id3"
+		return 1
+		
+	try:
+		id3info = ID3(filename)
+		id3info['TITLE'] = title
+		id3info['ARTIST'] = artist
+		print "ID3 tags added"
+	except InvalidTagError, message:
+		print "Invalid ID3 tag:", message
+	
+	return 0
 
 if __name__ == '__main__':
 	download_progress = 0
