@@ -1,6 +1,13 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 # 13/04/13
 import urllib, urllib2, sys, re
+
+try:
+	from ID3 import *
+	id3 = True
+except ImportError:
+	id3 = False
+
 
 if len(sys.argv) <= 1:
 	exit("You need to enter a soundcloud URI\nI.E:\n $./ %s http://soundcloud/user/song" % sys.argv[0])
@@ -67,8 +74,10 @@ def main():
 	# with a filename that matches our song's title
 	filename, headers = urllib.urlretrieve(url=url, filename=title, reporthook=report)
 	print "\n\nDownload Complete"
-	print "Attempting to add ID3 tags"
-	add_id3_tags(title, songinfo[0], songinfo[1])
+	if id3:
+		add_id3_tags(title, songinfo[0], songinfo[1])
+	else:
+		print "ID3 Tags will not be added to the MP3 as the ID3 module is not installed\n# sudo apt-get install python-id3"
 
 def report(block_no, block_size, file_size):
 	global download_progress
@@ -79,11 +88,6 @@ def report(block_no, block_size, file_size):
 	sys.stdout.flush()
 
 def add_id3_tags(filename, title, artist):
-	try:
-		from ID3 import *
-	except ImportError:
-		print "ID3 Tags will not be added to the MP3 as the ID3 module is not installed\n# sudo apt-get install python-id3"
-		return 1
 		
 	try:
 		id3info = ID3(filename)
