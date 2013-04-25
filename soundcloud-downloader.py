@@ -1,104 +1,100 @@
 #!/usr/bin/python
-# 13/04/13
-import urllib, urllib2, sys, re
+# 25/04/13
+import urllib, urllib2
+import sys
+import argparse
+import re
+import lxml.html
 
-try:
-	from ID3 import *
-	id3 = True
-except ImportError:
-	id3 = False
+from ID3 import *
 
-
-if len(sys.argv) <= 1:
-	exit("You need to enter a soundcloud URI\nI.E:\n $./ %s http://soundcloud/user/song" % sys.argv[0])
-
-def get_dl_url(htmlsource):
-	# regular expression for the string we will search for in htmlsource 
-	regexp = '<img\sclass="waveform"\ssrc="http://[^/]*/(\w*)_m.png"\sunselectable="on"\s/>'
-	
-	# find the first match that occurs, if any
-	match = re.search(regexp, htmlsource)
-	
-	if match:
-		# if we found a match, retrieve the song ID
-		songid = match.group(1)	
-		# create a new stream hyperlink with the song ID
-		url = "http://media.soundcloud.com/stream/%s" % songid
-	else:
-		sys.exit("No waveform image found at %s. Exiting." % sys.argv[1])
-	
-	return url
-
-def get_title(htmlsource):
-	# regular expression for the string we will search for in htmlsource
-	regexp = "<title>(.*?)by\s([\w'\s]*)\son\sSoundCloud.*</title>"
-
-	match = re.search(regexp, htmlsource)
-	
-	if match:
-		# if we found a match, retrieve the title of the song
-		#title = "%s - %s.mp3" % (match.group(1), match.group(2)) #\1 Songtitle \2 Artist
-		title = [match.group(1), match.group(2)]
-	else:
-		sys.exit("No title data for song at %s. Exiting." % sys.argv[1])
-	
-	return title
-
-def main():
-	print "Getting Information... "
-	
-	# retrieve the URL of the song to download, from the final command-line argument
-	soundcloud_url = sys.argv[-1]
-	
-	try:
-		# open our song's URL for reading
-		html = urllib2.urlopen(soundcloud_url)
-	except ValueError:
-		# the user supplied URL is invalid or could not be retrieved 
-		sys.exit("Error: The URL '%s' can not be retrieved" % soundcloud_url)
+class SoundCloudDownload:
+	def __init__(self, url, verbose, tags, related):
+		self.url = url
+		self.verbose = verbose
+		self.tags = tags
+		self.related = False # Keep it false until it works # = related
 		
-	# store the contents (source) of our song's URL
-	htmlsource = html.read()
-	html.close()
-	
-	# get our song's title from its HTML contents
-	songinfo = get_title(htmlsource)
-	title  = "%s - %s.mp3" % (songinfo[0], songinfo[1])
-	
-	# get our song's actual download URL from its HTML contents
-	url = get_dl_url(htmlsource)
-	
-	print "Downloading File '%s'" % title
-	
-	# copy the download URL's content (the full song) to a file 
-	# with a filename that matches our song's title
-	filename, headers = urllib.urlretrieve(url=url, filename=title, reporthook=report)
-	print "\n\nDownload Complete"
-	if id3:
-		add_id3_tags(title, songinfo[0], songinfo[1])
-	else:
-		print "ID3 Tags will not be added to the MP3 as the ID3 module is not installed\n# sudo apt-get install python-id3"
-
-def report(block_no, block_size, file_size):
-	global download_progress
-	download_progress += block_size
-	
-	sys.stdout.write("\rDownloading (%.2fMB/%.2fMB): %.2f%% / 100%%" 
-		% (download_progress/1024.00/1024.00, file_size/1024.00/1024.00, 100 * float(download_progress)/float(file_size)) )
-	sys.stdout.flush()
-
-def add_id3_tags(filename, title, artist):
+		self.download_progress = 0
 		
-	try:
-		id3info = ID3(filename)
-		id3info['TITLE'] = title
-		id3info['ARTIST'] = artist
-		print "ID3 tags added"
-	except InvalidTagError, message:
-		print "Invalid ID3 tag:", message
+		try:
+			# Opens the URL
+			self.html = lxml.html.parse(self.url)
+		except IOError:
+			# If the URL can not be read, exit and inform the silly cunt
+			sys.exit('Error: The URL \'{0}\' is borked'.format(self.url))
+		
+		# Retrieve the page's title
+		self.pageTitle = self.html.xpath('//title/text()')[0]
+		self.musicSrc = self.html.xpath("//img[@class='waveform']/@src")
+		
+		if not self.related:
+			# Only have the first source in the list
+			# The titles, wot about the titles??????
+			self.musicSrc = self.musicSrc[:1]
+		
+	def add_id3_tags(self, filename, title, artist):
+		try:
+			id3info = ID3(filename)
+			id3info['TITLE'] = title
+			id3info['ARTIST'] = artist
+			print "\nID3 tags added"
+		except InvalidTagError, message:
+			print "Invalid ID3 tag:", message
+		
+		return 0
 	
-	return 0
+	def makeURL(self, src):
+		regexp = 'http://[^/]*/(\w*)_m.png'
+		match = re.search(regexp, src)
+		
+		if match:
+			songid = match.group(1)	
+			url = "http://media.soundcloud.com/stream/%s" % songid
+		else:
+			sys.exit("No waveform image found at %s. Exiting." % sys.argv[1])
+		
+		return url
+	
+	def downloadSong(self, src):
+		url = self.makeURL(src)
+		match = re.search("(.*?)\sby\s([\w'\s]*)\son\sSoundCloud.*", self.pageTitle)
+		songTitle = match.group(1)
+		artist = match.group(2).capitalize()
+		mp3 = "{0} - {1}.mp3".format(songTitle, artist)
+		filename, headers = urllib.urlretrieve(url=url, filename=mp3, reporthook=self.report)
+		self.add_id3_tags(mp3, songTitle, artist)
 
-if __name__ == '__main__':
-	download_progress = 0
-	main()
+	def report(self, block_no, block_size, file_size):
+		self.download_progress += block_size
+		rProgress = round(self.download_progress/1024.00/1024.00, 2)
+		rFile = round(file_size/1024.00/1024.00, 2)
+		percent = round(100 * float(self.download_progress)/float(file_size))
+		sys.stdout.write("\rDownloading ({0:.2f}/{1:.2f}MB): {2:.2f}% / 100%".format(rProgress, rFile, percent))
+		sys.stdout.flush()
+	
+def main(url, verbose, tags, related):
+	down = SoundCloudDownload(url, verbose, tags, related)
+	
+	for src in down.musicSrc:
+		down.downloadSong(src)
+
+if __name__ == "__main__":
+	# parse arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-v", "--verbose", help="increase output verbosity",
+		action="store_true")
+	parser.add_argument("-t", "--id3tags", help="add id3 tags",
+		action="store_true")
+	parser.add_argument("-r", "--related", help="download related songs",
+		action="store_true")
+	parser.add_argument("SOUND_URL", help="Soundcloud URL")
+	args = parser.parse_args()
+	verbose = bool(args.verbose)
+	tags = bool(args.id3tags)
+	related = bool(args.related)
+	
+	main(args.SOUND_URL, verbose, tags, related)
+
+
+
