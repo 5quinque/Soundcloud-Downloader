@@ -13,34 +13,20 @@ class SoundCloudDownload:
 		self.url = url
 		self.verbose = verbose
 		self.tags = tags
-		self.related = False # Keep it false until it works # = related
-		
+		self.related = related
+		self.musicInfo = {}
 		self.download_progress = 0
 		
-		try:
-			# Opens the URL
-			self.html = lxml.html.parse(self.url)
-		except IOError:
-			# If the URL can not be read, exit and inform the silly cunt
-			sys.exit('Error: The URL \'{0}\' is borked'.format(self.url))
-		
-		# Retrieve the page's title
-		self.pageTitle = self.html.xpath('//title/text()')[0]
-		self.musicSrc = self.html.xpath("//img[@class='waveform']/@src")
-		
-		if not self.related:
-			# Only have the first source in the list
-			# The titles, wot about the titles??????
-			self.musicSrc = self.musicSrc[:1]
-		
-	def add_id3_tags(self, filename, title, artist):
+		self.getInfo(self.url)
+	
+	def addID3(self, filename, title, artist):
 		try:
 			id3info = ID3(filename)
 			id3info['TITLE'] = title
 			id3info['ARTIST'] = artist
 			print "\nID3 tags added"
-		except InvalidTagError, message:
-			print "Invalid ID3 tag:", message
+		except InvalidTagError, err:
+			print "\nInvalid ID3 tag: {0}".format(err)
 		
 		return 0
 	
@@ -49,35 +35,60 @@ class SoundCloudDownload:
 		match = re.search(regexp, src)
 		
 		if match:
-			songid = match.group(1)	
-			url = "http://media.soundcloud.com/stream/%s" % songid
+			songid = match.group(1)
+			url = "http://media.soundcloud.com/stream/{0}".format(songid)
 		else:
-			sys.exit("No waveform image found at %s. Exiting." % sys.argv[1])
+			sys.stderr.write("Stream URL not found for source {0}.\n".format(src))
 		
 		return url
 	
-	def downloadSong(self, src):
+	def downloadSong(self, title, src):
 		url = self.makeURL(src)
-		match = re.search("(.*?)\sby\s([\w'\s]*)\son\sSoundCloud.*", self.pageTitle)
+		match = re.search("(.*?)\sby\s([\w'\s]*)\son\sSoundCloud.*", title)
 		songTitle = match.group(1)
 		artist = match.group(2).capitalize()
 		mp3 = "{0} - {1}.mp3".format(songTitle, artist)
+		sys.stdout.write("\nDownloading: {0}\n".format(mp3))
 		filename, headers = urllib.urlretrieve(url=url, filename=mp3, reporthook=self.report)
-		self.add_id3_tags(mp3, songTitle, artist)
-
+		self.addID3(mp3, songTitle, artist)
+	
+	def getInfo(self, url):
+		try:
+			# Opens the URL
+			self.html = lxml.html.parse(url)
+		except IOError:
+			# If the URL can not be read, exit
+			sys.exit('Error: The URL \'{0}\' is borked'.format(url))
+		
+		# Retrieve the page's title
+		pageTitle = self.html.xpath('//title/text()')[0]
+		musicSrc = self.html.xpath("//img[@class='waveform']/@src")[0]
+		self.musicInfo[pageTitle] = musicSrc
+		
+		return 0
+	
 	def report(self, block_no, block_size, file_size):
 		self.download_progress += block_size
 		rProgress = round(self.download_progress/1024.00/1024.00, 2)
 		rFile = round(file_size/1024.00/1024.00, 2)
 		percent = round(100 * float(self.download_progress)/float(file_size))
-		sys.stdout.write("\rDownloading ({0:.2f}/{1:.2f}MB): {2:.2f}% / 100%".format(rProgress, rFile, percent))
+		sys.stdout.write("\r({0:.2f}/{1:.2f}MB): {2:.2f}%  {3}".format(rProgress, rFile, percent, k_size))
 		sys.stdout.flush()
-	
+
 def main(url, verbose, tags, related):
 	down = SoundCloudDownload(url, verbose, tags, related)
 	
-	for src in down.musicSrc:
-		down.downloadSong(src)
+	if down.related:
+		down.relatedURLs = down.html.xpath("//div[@class='haudio mode player small']//h3//a/@href")
+		for i in range(len(down.relatedURLs)):
+				if not down.relatedURLs[i].startswith('http://soundcloud.com'):
+					down.relatedURLs[i] = 'http://soundcloud.com{0}'.format(down.relatedURLs[i])
+		for a in down.relatedURLs:
+			down.getInfo(a)
+	
+	for mp3 in down.musicInfo:
+		down.download_progress = 0
+		down.downloadSong(mp3, down.musicInfo[mp3])
 
 if __name__ == "__main__":
 	# parse arguments
@@ -95,6 +106,4 @@ if __name__ == "__main__":
 	related = bool(args.related)
 	
 	main(args.SOUND_URL, verbose, tags, related)
-
-
 
