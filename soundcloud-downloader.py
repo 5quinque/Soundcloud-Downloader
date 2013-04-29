@@ -5,6 +5,7 @@ import sys
 import argparse
 import re
 import lxml.html
+import time
 
 from ID3 import *
 
@@ -45,8 +46,14 @@ class SoundCloudDownload:
 	def downloadSong(self, title, src):
 		url = self.makeURL(src)
 		match = re.search("(.*?)\sby\s([\w'\s]*)\son\sSoundCloud.*", title)
-		songTitle = match.group(1)
-		artist = match.group(2).capitalize()
+		try:
+			songTitle = match.group(1)
+			artist = match.group(2).capitalize()
+		except AttributeError:
+			sys.stderr.write("\nError finding title")
+			songTitle = "Not Found"
+			artist = "Not Found"
+			return 1
 		mp3 = "{0} - {1}.mp3".format(songTitle, artist)
 		sys.stdout.write("\nDownloading: {0}\n".format(mp3))
 		filename, headers = urllib.urlretrieve(url=url, filename=mp3, reporthook=self.report)
@@ -69,26 +76,33 @@ class SoundCloudDownload:
 	
 	def report(self, block_no, block_size, file_size):
 		self.download_progress += block_size
+		if int(self.download_progress / 1024 * 8) > 1000:
+			speed = "{0} Mbps".format(round((self.download_progress / 1024 / 1024 * 8) / (time.time() - self.current_time), 2))
+		else:
+			speed = "{0} Kbps".format(round((self.download_progress / 1024 * 8) / (time.time() - self.current_time), 2))
 		rProgress = round(self.download_progress/1024.00/1024.00, 2)
 		rFile = round(file_size/1024.00/1024.00, 2)
 		percent = round(100 * float(self.download_progress)/float(file_size))
-		sys.stdout.write("\r({0:.2f}/{1:.2f}MB): {2:.2f}%  {3}".format(rProgress, rFile, percent, k_size))
+		sys.stdout.write("\r {3} ({0:.2f}/{1:.2f}MB): {2:.2f}% ".format(rProgress, rFile, percent, speed))
 		sys.stdout.flush()
 
 def main(url, verbose, tags, related):
 	down = SoundCloudDownload(url, verbose, tags, related)
 	
 	if down.related:
-		down.relatedURLs = down.html.xpath("//div[@class='haudio mode player small']//h3//a/@href")
+		down.relatedURLs = down.html.xpath("//div[contains(@class, 'player')]//h3//a/@href")
 		for i in range(len(down.relatedURLs)):
 				if not down.relatedURLs[i].startswith('http://soundcloud.com'):
 					down.relatedURLs[i] = 'http://soundcloud.com{0}'.format(down.relatedURLs[i])
 		for a in down.relatedURLs:
 			down.getInfo(a)
-	
 	for mp3 in down.musicInfo:
 		down.download_progress = 0
+		down.current_time = time.time()
 		down.downloadSong(mp3, down.musicInfo[mp3])
+		sys.stdout.write("Downloaded in: {0} Seconds".format(round(time.time() - down.current_time, 2)))
+	
+	return 0
 
 if __name__ == "__main__":
 	# parse arguments
