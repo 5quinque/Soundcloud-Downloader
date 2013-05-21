@@ -44,13 +44,16 @@ class SoundCloudDownload:
 		return url
 	
 	def downloadSong(self, title, src):
+		valid_chars = '-_.() abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 		url = self.makeURL(src)
-		match = re.search("(.*?)\sby\s([\w'\s]*)\son\sSoundCloud.*", title)
+		match = re.search("(.+)\sby\s(.+)\son\sSoundCloud.*", title)
 		try:
 			songTitle = match.group(1)
 			artist = match.group(2).capitalize()
+			songTitle = ''.join(c for c in songTitle if c in valid_chars)
+			artist = ''.join(c for c in artist if c in valid_chars)
 		except AttributeError:
-			sys.stderr.write("\nError finding title")
+			sys.stderr.write("\nError finding title\n")
 			songTitle = "Not Found"
 			artist = "Not Found"
 			return 1
@@ -100,7 +103,7 @@ def main(url, verbose, tags, related):
 		down.download_progress = 0
 		down.current_time = time.time()
 		down.downloadSong(mp3, down.musicInfo[mp3])
-		sys.stdout.write("Downloaded in: {0} Seconds".format(round(time.time() - down.current_time, 2)))
+		sys.stdout.write("Downloaded in: {0} Seconds\n".format(round(time.time() - down.current_time, 2)))
 	
 	return 0
 
