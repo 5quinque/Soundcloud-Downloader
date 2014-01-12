@@ -1,3 +1,12 @@
 Used to download music files from SoundCloud.com even if the download button is not available
 Just run the python script like:
 $ soundcloud-downloader.py http://soundcloud.com/user/song
+
+Requirements
+------------
+
+ID3-PY (for name tagging)
+http://id3-py.sourceforge.net/
+
+LXML (for parsing SoundCloud pages)
+pip install lxml
