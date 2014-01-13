@@ -64,8 +64,8 @@ class SoundCloudDownload:
 	
 	def getInfo(self, url):
 		try:
-			# Opens the URL
-			self.html = lxml.html.parse(url)
+			# Opens the URL, using urllib2 for https support
+			self.html = lxml.html.parse(urllib2.urlopen(url))
 		except IOError:
 			# If the URL can not be read, exit
 			sys.exit('Error: The URL \'{0}\' is borked'.format(url))
