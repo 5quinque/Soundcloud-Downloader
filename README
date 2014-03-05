@@ -8,5 +8,5 @@ Requirements
 ID3-PY (for name tagging)
 http://id3-py.sourceforge.net/
 
-LXML (for parsing SoundCloud pages)
-pip install lxml
+Requests (for downloading SoundCloud pages)
+pip install requests
