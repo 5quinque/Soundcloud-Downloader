@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 25/04/13
+# March 8, 2014
 import urllib, urllib2
 import sys
 import argparse
@@ -17,32 +17,52 @@ class SoundCloudDownload:
 		self.download_progress = 0
 		self.current_time = time.time()
 		self.download_progress = 0
-		self.title = ''
-		self.streamURL = self.getStreamURL(self.url)
-	
-	def getStreamURL(self, url):
-		r = requests.get("http://api.soundcloud.com/resolve.json?url={0}&client_id=YOUR_CLIENT_ID".format(url))
-		waveform_url = r.json()['waveform_url']
-		self.title = r.json()['title']
-		regex = re.compile("\/([a-zA-Z0-9]+)_")
-		r = regex.search(waveform_url)
-		stream_id = r.groups()[0]
-		return "http://media.soundcloud.com/stream/{0}".format(stream_id)
+		self.titleList = []
+		self.streamURLlist = self.getStreamURLlist(self.url)
 
-	def addID3(self):
+	def getStreamURLlist(self, url):
+		r = requests.get("http://api.soundcloud.com/resolve.json?url={0}&client_id=YOUR_CLIENT_ID".format(url))
+                streamList = []
+                # Try to get the tracks in the playlist
+                try:
+                        tracks = r.json()['tracks']
+                # If this isn't a playlist, just make a list of
+                # a single element (the track)
+                except:
+                        tracks = [r.json()]
+                for track in tracks:
+                        waveform_url = track['waveform_url']
+                        self.titleList.append(self.getTitleFilename(track['title']))
+                        regex = re.compile("\/([a-zA-Z0-9]+)_")
+                        r = regex.search(waveform_url)
+                        stream_id = r.groups()[0]
+                        streamList.append("http://media.soundcloud.com/stream/{0}".format(stream_id))
+                return streamList
+
+	def addID3(self, i):
+                curTitle = self.titleList[i]
 		try:
-			id3info = ID3("{0}.mp3".format(self.title))
-			id3info['TITLE'] = self.title
-			id3info['ARTIST'] = self.title
+			id3info = ID3("{0}.mp3".format(curTitle))
+			# Slicing is to get the whole track name
+			# because SoundCloud titles are usually longer
+			# than the ID3 spec of 30 characters
+			id3info['TITLE'] = curTitle[:30] # first 30 chars
+			id3info['ARTIST'] = curTitle[30:] # rest of the chars
 			print "\nID3 tags added"
 		except InvalidTagError, err:
 			print "\nInvalid ID3 tag: {0}".format(err)
 	
-	def downloadSong(self):
-		filename = "{0}.mp3".format(self.title)
-		sys.stdout.write("\nDownloading: {0}\n".format(filename))
-		filename, headers = urllib.urlretrieve(url=self.streamURL, filename=filename, reporthook=self.report)
-		self.addID3()
+	def downloadSongs(self):
+                i = 0 # used for adding ID3 tags
+                for title, streamURL in zip(self.titleList, self.streamURLlist):
+                        filename = "{0}.mp3".format(title)
+                        sys.stdout.write("\nDownloading: {0}\n".format(filename))
+                        try:
+                                filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+                                self.addID3(i)
+                        except:
+                                print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
+                        i += 1 # used for adding ID3 tags
 	
 	def report(self, block_no, block_size, file_size):
 		self.download_progress += block_size
@@ -55,6 +75,14 @@ class SoundCloudDownload:
 		percent = round(100 * float(self.download_progress)/float(file_size))
 		sys.stdout.write("\r {3} ({0:.2f}/{1:.2f}MB): {2:.2f}%".format(rProgress, rFile, percent, speed))
 		sys.stdout.flush()
+
+        ## Convenience Methods
+	def getTitleFilename(self, title):
+                '''
+                Cleans a title from Soundcloud to be a guaranteed-allowable filename in any filesystem.
+                '''
+                allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789-_()"
+                return ''.join(c for c in title if c in allowed)
 
 if __name__ == "__main__":
 	if (int(requests.__version__[0]) == 0):
@@ -73,7 +101,4 @@ if __name__ == "__main__":
 	tags = bool(args.id3tags)
 	
 	download = SoundCloudDownload(args.SOUND_URL, verbose, tags)
-	download.downloadSong()
-	
-	
-
+	download.downloadSongs()
