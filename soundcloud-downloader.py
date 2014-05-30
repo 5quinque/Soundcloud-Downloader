@@ -16,7 +16,6 @@ class SoundCloudDownload:
 		self.tags = tags
 		self.download_progress = 0
 		self.current_time = time.time()
-		self.download_progress = 0
 		self.titleList = []
 		self.streamURLlist = self.getStreamURLlist(self.url)
 
@@ -58,6 +57,8 @@ class SoundCloudDownload:
                         try:
                                 filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
                                 self.addID3(title)
+                                # reset download progress to report multiple track download progress correctly
+                                self.download_progress = 0
                         except:
                                 print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
 	
