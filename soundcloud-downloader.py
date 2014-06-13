@@ -31,20 +31,16 @@ class SoundCloudDownload:
          user = r.json()['username']
          user = r.json()['id']
          for x in range(0, 3):
-            print str(user)
             api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
             r = requests.get(api)
             tracks.extend(r.json())
       except:
          try:
             tracks = r.json()['tracks']
-            print '2'
             # If this isn't a playlist, just make a list of
             # a single element (the track)
          except:
             tracks = [r.json()]
-            print '3'
-      #print len(tracks)
       for track in tracks:
          waveform_url = track['waveform_url']
          self.titleList.append(self.getTitleFilename(track['title']))
