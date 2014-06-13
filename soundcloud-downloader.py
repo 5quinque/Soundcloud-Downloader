@@ -8,6 +8,7 @@ import requests
 import time
 import os.path
 import soundcloud
+import math
 
 from ID3 import *
 
@@ -25,13 +26,26 @@ class SoundCloudDownload:
    def getStreamURLlist(self, url):
       streamList = []
       tracks = []
+      likes = False
+      if "/likes" in url:
+         url = url[:-6]
+         likes = True
+      print url
       api = "http://api.soundcloud.com/resolve.json?url={0}&client_id=YOUR_CLIENT_ID".format(url)
       r = requests.get(api)
       try:
          user = r.json()['username']
          user = r.json()['id']
-         for x in range(0, 3):
-            api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
+         span = math.ceil(r.json()['public_favorites_count']/float(200)) if likes else math.ceil(r.json()['track_count']/float(200))
+         print span
+         
+         for x in range(0, int(span)):
+            if likes:
+               print 'here'
+               api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
+            else:
+               api = "http://api.soundcloud.com/users/" + str(user) + "/tracks.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
+            print api
             r = requests.get(api)
             tracks.extend(r.json())
       except:
