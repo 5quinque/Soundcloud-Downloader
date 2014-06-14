@@ -9,6 +9,7 @@ import time
 import os.path
 import soundcloud
 import math
+import os
 
 from ID3 import *
 
@@ -21,31 +22,27 @@ class SoundCloudDownload:
       self.current_time = time.time()
       self.titleList = []
       self.artistList = []
-      self.streamURLlist = self.getStreamURLlist(self.url)   
+      self.likes = False   
+      self.streamURLlist = self.getStreamURLlist(self.url)
 
    def getStreamURLlist(self, url):
       streamList = []
       tracks = []
-      likes = False
       if "/likes" in url:
          url = url[:-6]
-         likes = True
-      print url
+         self.likes = True
       api = "http://api.soundcloud.com/resolve.json?url={0}&client_id=YOUR_CLIENT_ID".format(url)
       r = requests.get(api)
       try:
          user = r.json()['username']
          user = r.json()['id']
-         span = math.ceil(r.json()['public_favorites_count']/float(200)) if likes else math.ceil(r.json()['track_count']/float(200))
-         print span
-         
+         span = math.ceil(r.json()['public_favorites_count']/float(200)) if self.likes else math.ceil(r.json()['track_count']/float(200))
+
          for x in range(0, int(span)):
-            if likes:
-               print 'here'
+            if self.likes:
                api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
             else:
                api = "http://api.soundcloud.com/users/" + str(user) + "/tracks.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
-            print api
             r = requests.get(api)
             tracks.extend(r.json())
       except:
@@ -69,33 +66,38 @@ class SoundCloudDownload:
       try:
          id3info = ID3("{0}.mp3".format(title))
          # Slicing is to get the whole track name
-         # because SoundCloud titles are usually longer
-         # than the ID3 spec of 30 characters
+         # because SoundCloud titles usually have
+         # a dash between the artist and some name
          split = title.find("-")
          if not split == -1:
             id3info['TITLE'] = title[(split + 2):] 
             id3info['ARTIST'] = title[:split] 
          else:
-            id3info['TITLE'] = title[:30] 
+            id3info['TITLE'] = title
             id3info['ARTIST'] = artist
          print "\nID3 tags added"
       except InvalidTagError, err:
          print "\nInvalid ID3 tag: {0}".format(err)
    
    def downloadSongs(self):
+      done = False
       for artist, title, streamURL in zip(self.artistList, self.titleList, self.streamURLlist):
+         if not done:
             filename = "{0}.mp3".format(title)
             sys.stdout.write("\nDownloading: {0}\n".format(filename))
             try:
-                    if not os.path.isfile(filename):
-                       filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
-                       self.addID3(title, artist)
-                    # reset download progress to report multiple track download progress correctly
-                       self.download_progress = 0
-                    else:
-                       print "File Exists"
+               if not os.path.isfile(filename):
+                  filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+                  self.addID3(title, artist)
+                  # reset download progress to report multiple track download progress correctly
+                  self.download_progress = 0
+               elif self.likes:
+                  print "File Exists"
+                  done = True
+               else:
+                  print "File Exists"
             except:
-                    print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
+               print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
    
    def report(self, block_no, block_size, file_size):
       self.download_progress += block_size
