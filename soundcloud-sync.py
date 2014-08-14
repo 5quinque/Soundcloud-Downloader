@@ -59,12 +59,13 @@ if __name__ == "__main__":
 	 #Check if top level music directory exists
    if not os.path.isdir(args.TOP_LEVEL_MUSIC_DIR):
       os.makedirs(args.TOP_LEVEL_MUSIC_DIR)
-      os.system('touch '+ args.TOP_LEVEL_MUSIC_DIR+'/whitelist')
+      os.system('touch \''+ args.TOP_LEVEL_MUSIC_DIR+'/whitelist\'')
       first_time=1
 	 
    if not os.path.isfile(args.TOP_LEVEL_MUSIC_DIR+'/whitelist'):
-      os.system('touch '+ args.TOP_LEVEL_MUSIC_DIR+'/whitelist')
+      os.system('touch \''+ args.TOP_LEVEL_MUSIC_DIR+'/whitelist\'')
       first_time=1
+      print 'touch '+ args.TOP_LEVEL_MUSIC_DIR+'/whitelist'
 	 
    os.chdir(args.TOP_LEVEL_MUSIC_DIR)	  
    for playlist in user.playlists:
