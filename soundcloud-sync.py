@@ -81,7 +81,7 @@ if __name__ == "__main__":
          continue						 
 
       os.chdir(args.TOP_LEVEL_MUSIC_DIR+'/'+playlist_folder)	  
-      download = SoundCloudDownload(playlist, verbose, tags)
+      download = soundcloud_downloader.SoundCloudDownload(playlist, verbose, tags)
       download.downloadSongs()
 
    if first_time:

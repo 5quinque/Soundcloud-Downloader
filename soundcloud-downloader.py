@@ -84,18 +84,16 @@ class SoundCloudDownload:
       for artist, title, streamURL in zip(self.artistList, self.titleList, self.streamURLlist):
          if not done:
             filename = "{0}.mp3".format(title)
-            sys.stdout.write("\nDownloading: {0}\n".format(filename))
             try:
                if not os.path.isfile(filename):
+                  sys.stdout.write("\nDownloading: {0}\n".format(filename))
                   filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
                   self.addID3(title, artist)
                   # reset download progress to report multiple track download progress correctly
                   self.download_progress = 0
                elif self.likes:
-                  print "File Exists"
+            #      print "File Exists"
                   done = True
-               else:
-                  print "File Exists"
             except:
                print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
    
