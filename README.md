@@ -11,6 +11,10 @@ is more of a skip list as any playlist names listed in that file will not be syn
 all playlists are listed in that file after running the script the first time. Remove desired
 playlists from that file and run the script again. 
 
+*Note: For playlists with spaces in their names, only the first word will be taken as the 
+folder name in your local music directory -- this is due to the way Soundcloud handles 
+the URL of sets with spaces in their names -- namely, they only put the first word. 
+
 
 SoundCloud Downloader 
 ---------------------
