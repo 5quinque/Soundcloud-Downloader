@@ -2,7 +2,7 @@ SoundCloud Syncer
 -----------------
 
 Used to sync a user's playlists with a local Music directory. The script is ran as follows:
-$ soundcloud-syncer.py <SoundCloud Username> <Absolte Path to Local Music Directory> 
+$ soundcloud-syncer.py "SoundCloud Username" "Absolte Path to Local Music Directory"
 
 The first time you run this script, it will create the folder structure (create a directory
 for each playlist) and also add a whitelist file in the local music directory. This whitelist
