@@ -7,11 +7,16 @@ import re
 import requests
 import time
 import os.path
-import soundcloud
 import math
 import os
 
-from ID3 import *
+# from ID3 import *
+from mutagen.easyid3 import EasyID3
+
+
+DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/Untagged': ") or '/media/Data/Music/Untagged'
+
+
 
 class SoundCloudDownload:
    def __init__(self, url, verbose, tags):
@@ -62,21 +67,20 @@ class SoundCloudDownload:
          streamList.append("http://media.soundcloud.com/stream/{0}".format(stream_id))
       return streamList
 
-   def addID3(self, title, artist):
+   def addID3(self, title, artist, filename):
       try:
-         id3info = ID3("{0}.mp3".format(title))
+         id3info = EasyID3()
          # Slicing is to get the whole track name
          # because SoundCloud titles usually have
          # a dash between the artist and some name
-         split = title.find("-")
-         if not split == -1:
-            id3info['TITLE'] = title[(split + 2):] 
-            id3info['ARTIST'] = title[:split] 
-         else:
-            id3info['TITLE'] = title
-            id3info['ARTIST'] = artist
+         # split = title.find("-")
+         
+         id3info['title'] = title
+         id3info['artist'] = artist
+         
+         id3info.save(filename)
          print "\nID3 tags added"
-      except InvalidTagError, err:
+      except Exception, err:
          print "\nInvalid ID3 tag: {0}".format(err)
    
    def downloadSongs(self):
@@ -86,18 +90,21 @@ class SoundCloudDownload:
             filename = "{0}.mp3".format(title)
             sys.stdout.write("\nDownloading: {0}\n".format(filename))
             try:
-               if not os.path.isfile(filename):
-                  filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
-                  self.addID3(title, artist)
+               if not os.path.exists(os.path.join(DIRECTORY, filename)):
+                  filename, headers = urllib.urlretrieve(
+                     url=streamURL, 
+                     filename=os.path.join(DIRECTORY, filename), 
+                     reporthook=self.report)
+                  self.addID3(title, artist, os.path.join(DIRECTORY, filename))
                   # reset download progress to report multiple track download progress correctly
                   self.download_progress = 0
                elif self.likes:
                   print "File Exists"
-                  done = True
+                  # done = True
                else:
                   print "File Exists"
             except:
-               print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
+               print "\nERROR: Author has not set song to streamable, so it cannot be downloaded"
    
    def report(self, block_no, block_size, file_size):
       self.download_progress += block_size
