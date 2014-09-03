@@ -14,7 +14,12 @@ import os
 from mutagen.easyid3 import EasyID3
 
 
-DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/Untagged': ") or '/media/Data/Music/Untagged'
+while True:
+   DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/Untagged': ") or '/media/Data/Music/Untagged'
+   if os.path.exists(DIRECTORY):
+      break;
+   else:
+      print 'That path does not exist.'
 
 
 
