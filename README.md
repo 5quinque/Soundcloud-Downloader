@@ -12,3 +12,7 @@ http://id3-py.sourceforge.net/
 
 Requests (for downloading SoundCloud pages)
 pip install requests
+
+Install dependencies
+------------
+python install-dependencies.py
