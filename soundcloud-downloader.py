@@ -10,9 +10,7 @@ import os.path
 import math
 import os
 
-# from ID3 import *
 from mutagen.easyid3 import EasyID3
-
 
 while True:
    DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/Untagged': ") or '/media/Data/Music/Untagged'
@@ -20,8 +18,6 @@ while True:
       break;
    else:
       print 'That path does not exist.'
-
-
 
 class SoundCloudDownload:
    def __init__(self, url, verbose, tags):
@@ -78,7 +74,6 @@ class SoundCloudDownload:
          # Slicing is to get the whole track name
          # because SoundCloud titles usually have
          # a dash between the artist and some name
-         # split = title.find("-")
          
          id3info['title'] = title
          id3info['artist'] = artist
@@ -102,10 +97,7 @@ class SoundCloudDownload:
                      reporthook=self.report)
                   self.addID3(title, artist, os.path.join(DIRECTORY, filename))
                   # reset download progress to report multiple track download progress correctly
-                  self.download_progress = 0
-               elif self.likes:
-                  print "File Exists"
-                  # done = True
+		  self.download_progress = 0
                else:
                   print "File Exists"
             except:
