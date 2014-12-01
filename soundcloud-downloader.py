@@ -117,7 +117,7 @@ class SoundCloudDownload:
       rProgress = round(self.download_progress/1024.00/1024.00, 2)
       rFile = round(file_size/1024.00/1024.00, 2)
       percent = round(100 * float(self.download_progress)/float(file_size))
-      sys.stdout.write("\r {3} ({0:.2f}/{1:.2f}MB): {2:.2f}%".format(rProgress, rFile, percent, speed))
+      sys.stdout.write("\r\033[92m {3} ({0:.2f}/{1:.2f}MB): \033[94m{2:.2f}%\033[0m".format(rProgress, rFile, percent, speed))
       sys.stdout.flush()
 
         ## Convenience Methods
