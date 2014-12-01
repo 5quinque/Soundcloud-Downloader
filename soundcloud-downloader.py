@@ -13,11 +13,16 @@ import os
 from mutagen.easyid3 import EasyID3
 
 while True:
-   DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/Untagged': ") or '/media/Data/Music/Untagged'
-   if os.path.exists(DIRECTORY):
-      break;
+   DIRECTORY = raw_input("Where do you want to put the files?\ndefault is '/media/Data/Music/New': ") or '/media/Data/Music/New'
+   if not os.path.exists(DIRECTORY):
+      print 'That path does not exist. Creating directory.'
+      try:
+         os.mkdir(DIRECTORY)
+         break
+      except:
+         print 'Could not make directory. Please try agagin.'
    else:
-      print 'That path does not exist.'
+      break
 
 class SoundCloudDownload:
    def __init__(self, url, verbose, tags):
