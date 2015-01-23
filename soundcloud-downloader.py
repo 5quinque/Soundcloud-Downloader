@@ -203,10 +203,7 @@ class SoundCloudDownload:
 			print("\nID3 tags added")
 
 	def downloadCoverImage(self, filename, artworkURL):
-		print(artworkURL)
-		print(filename)
 		filename = "{0}.jpg".format(self.getTitleFilename(filename))
-		print(filename)
 		sys.stdout.write("\nDownloading: {0}\n".format(filename))
 		try:
 			if not os.path.isfile(filename):
