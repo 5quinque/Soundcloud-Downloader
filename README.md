@@ -3,8 +3,8 @@ Just run the python script like:
 ------------
 $ soundcloud-downloader.py --d http://soundcloud.com/user/songname  
 or  
-$ soundcloud-downloader.py --d http://soundcloud.com/user/sets/setname
-or
+$ soundcloud-downloader.py --d http://soundcloud.com/user/sets/setname  
+or  
 $ soundcloud-downloader.py --d http://soundcloud.com/stream
 
 Help:
