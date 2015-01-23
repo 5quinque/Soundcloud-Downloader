@@ -24,7 +24,7 @@ except ImportError:
 
 class SoundCloudDownload:
 	
-	def __init__(self, url, verbose, tags, artwork, limit=200, clientid='', clientsecret=''):
+	def __init__(self, url, verbose, tags, artwork, limit=200, clientid='fa730dce446649aec3708a5bfb4f60a3', clientsecret='dfd90cae169a656f1d661b6c1e4e9f7f'):
 		if self.isValidSCUrl(url):
 			self.url = url
 		else:
@@ -203,14 +203,23 @@ class SoundCloudDownload:
 			print("\nID3 tags added")
 
 	def downloadCoverImage(self, filename, artworkURL):
+		print(artworkURL)
+		print(filename)
 		filename = "{0}.jpg".format(self.getTitleFilename(filename))
+		print(filename)
 		sys.stdout.write("\nDownloading: {0}\n".format(filename))
 		try:
 			if not os.path.isfile(filename):
-				if self.verbose:
-					filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
+				if sys.version_info[0] == 3:
+					if self.verbose:
+						filename, headers = urllib.request.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+					else:
+						filename, headers = urllib.request.urlretrieve(url=streamURL, filename=filename)
 				else:
-					filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename)
+					if self.verbose:
+						filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+					else:
+						filename, headers = urllib.urlretrieve(url=streamURL, filename=filename)
 				# reset download progress to report multiple track download progress correctly
 				self.download_progress = 0
 				return (True, filename) #tuple for fixed size and speed increase
