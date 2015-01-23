@@ -209,14 +209,14 @@ class SoundCloudDownload:
 			if not os.path.isfile(filename):
 				if sys.version_info[0] == 3:
 					if self.verbose:
-						filename, headers = urllib.request.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+						filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
 					else:
-						filename, headers = urllib.request.urlretrieve(url=streamURL, filename=filename)
+						filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename)
 				else:
 					if self.verbose:
-						filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+						filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
 					else:
-						filename, headers = urllib.urlretrieve(url=streamURL, filename=filename)
+						filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename)
 				# reset download progress to report multiple track download progress correctly
 				self.download_progress = 0
 				return (True, filename) #tuple for fixed size and speed increase
@@ -284,7 +284,7 @@ class SoundCloudDownload:
 		elif sys.version_info[0] == 2:
 			return raw_input()
 		else:
-			print("ERROR: Can't get input handle\nplease try non-interactive mode.")
+			print("ERROR: Can't get input handle")
 			exit()
 
 	def isValidSCUrl(self, url):
