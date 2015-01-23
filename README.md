@@ -11,7 +11,7 @@ Help:
 ------------
 $ soundcloud-downloader.py -h for more options
 
-Requirements
+Requirements:
 ------------
 (Optional)mutagen (for name tagging)  
 https://bitbucket.org/lazka/mutagen  
