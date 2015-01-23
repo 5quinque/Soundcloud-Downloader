@@ -257,9 +257,9 @@ class SoundCloudDownload:
 		if int(file_size) > 0:#added for python3 non-static file_size
 			self.download_progress += block_size
 			if int(self.download_progress / 1024 * 8) > 1000:
-				speed = "{0} Mbps".format(round((self.download_progress / 1024 / 1024 * 8) / (time.time() - self.current_time), 2))
+				speed = "{0:.2f} Mbps".format(round((self.download_progress / 1024 / 1024 * 8) / (time.time() - self.current_time), 2))
 			else:
-				speed = "{0} Kbps".format(round((self.download_progress / 1024 * 8) / (time.time() - self.current_time), 2))
+				speed = "{0:.2f} Kbps".format(round((self.download_progress / 1024 * 8) / (time.time() - self.current_time), 2))
 			rProgress = round(self.download_progress/1024.00/1024.00, 2)
 			rFile = round(file_size/1024.00/1024.00, 2)
 			percent = round(100 * float(self.download_progress)/float(file_size))
