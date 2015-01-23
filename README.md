@@ -1,18 +1,18 @@
 Used to download music files from SoundCloud.com even if the download button is not available.
-Just run the python script like:  
+Just run the python script like:
+------------
 $ soundcloud-downloader.py --d http://soundcloud.com/user/songname  
 or  
 $ soundcloud-downloader.py --d http://soundcloud.com/user/sets/setname
 or
 $ soundcloud-downloader.py --d http://soundcloud.com/stream
--------------
+
 Help:
+------------
 $ soundcloud-downloader.py -h for more options
--------------
 
 Requirements
 ------------
-
 (Optional)mutagen (for name tagging)
 https://bitbucket.org/lazka/mutagen
 pip install mutagen
