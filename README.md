@@ -13,14 +13,14 @@ $ soundcloud-downloader.py -h for more options
 
 Requirements
 ------------
-(Optional)mutagen (for name tagging)
-https://bitbucket.org/lazka/mutagen
-pip install mutagen
-
-(Optional)soundcloud-python
-https://github.com/soundcloud/soundcloud-python
-pip install soundcloud
-NOTE** for now please download and install from the link as they haven't sent the current update available on pip
-
-Requests (for downloading SoundCloud pages)
-pip install requests
+(Optional)mutagen (for name tagging)  
+https://bitbucket.org/lazka/mutagen  
+pip install mutagen  
+  
+(Optional)soundcloud-python  
+https://github.com/soundcloud/soundcloud-python  
+pip install soundcloud  
+NOTE** for now please download and install from the link as they haven't sent the current update available on pip  
+  
+Requests (for downloading SoundCloud pages)  
+pip install requests  
