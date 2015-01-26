@@ -5,7 +5,6 @@ import sys
 import argparse #only include if you keep __main__
 import re
 import time
-import os.path
 import math
 import os
 import getpass
@@ -24,7 +23,7 @@ except ImportError:
 
 class SoundCloudDownload:
 	
-	def __init__(self, url, verbose, tags, artwork, limit=200, clientid='', clientsecret=''):
+	def __init__(self, url, verbose, tags, artwork, limit=10, clientid='', clientsecret=''):
 		if self.isValidSCUrl(url):
 			self.url = url
 		else:
@@ -55,7 +54,7 @@ class SoundCloudDownload:
 		if limit < 201 and limit > 0:
 			self.limit = limit
 		else:
-			self.limit = 200
+			self.limit = 10
 		self.streamURLlist = self.getStreamURLlist(self.url)
 	
 	def getStreamURLlist(self, url):
@@ -300,7 +299,7 @@ if __name__ == "__main__":
 	parser.add_argument('-v', action='store_true', default=False, dest='IsVerbose', help='Display verbose information')
 	parser.add_argument('-t', action='store_true', default=False, dest='IncludeTags', help='Inject ID3 tag to downloaded file')
 	parser.add_argument('-a', action='store_true', default=False, dest='IncludeArtwork', help='Include artwork in ID3 tag')
-	parser.add_argument('-l', action='store_true', default=False, dest='GetTracksLimit', help='How many tracks to get if multiple')
+	parser.add_argument('-l', action='store_true', default=False, dest='GetTracksLimit', help='How many tracks to get if multiple(Max of 200). Defaults to 10')
 	args = parser.parse_args()
 	if args.SoundCloudURL == None:
 		print('No arguments specified.')
