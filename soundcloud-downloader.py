@@ -24,6 +24,7 @@ except ImportError:
 class SoundCloudDownload:
 	
 	def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret=''):
+		limit = int(limit)
 		if self.isValidSCUrl(url):
 			self.url = url
 		else:
