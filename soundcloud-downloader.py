@@ -302,9 +302,9 @@ if __name__ == "__main__":
 	parser.add_argument('-a', action='store_true', default=False, dest='IncludeArtwork', help='Include artwork in ID3 tag')
 	parser.add_argument('--l', action='store', default=20, dest='GetTracksLimit', help='How many tracks to get if multiple(Max of 200). Defaults to 20')
 	args = parser.parse_args()
-	#if args.SoundCloudURL == None:
-	#	print('No arguments specified.')
-	#	exit()
-	#else:
-	download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit)
-	download.downloadAudio()
+	if args.SoundCloudURL == None:
+		print('No arguments specified.')
+		exit()
+	else:
+		download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit)
+		download.downloadAudio()
