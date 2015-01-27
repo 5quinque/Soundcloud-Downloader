@@ -17,8 +17,8 @@ try:
 except ImportError:
         pass
 try:
-        from mutagen.mp3 import MP3 from mutagen.id3 import ID3, APIC,
-        TIT2, TPE1
+        from mutagen.mp3 import MP3
+        from mutagen.id3 import ID3, APIC, TIT2, TPE1
 except ImportError:
         pass
 
