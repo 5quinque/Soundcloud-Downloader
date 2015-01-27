@@ -24,14 +24,6 @@ except ImportError:
 class SoundCloudDownload:
 	
 	def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret=''):
-		'''
-		-v -t -a --d https://soundcloud.com/blacklabelnsd/sets/black-label-xl
-		'''
-		verbose = True
-		tags = True
-		artwork = True
-		limit = "20"
-		url = "https://soundcloud.com/blacklabelnsd/sets/black-label-xl"
 		limit = int(limit)
 		if self.isValidSCUrl(url):
 			self.url = url
