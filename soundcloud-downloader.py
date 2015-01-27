@@ -24,6 +24,14 @@ except ImportError:
 class SoundCloudDownload:
 	
 	def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret=''):
+		'''
+		-v -t -a --d https://soundcloud.com/blacklabelnsd/sets/black-label-xl
+		'''
+		verbose = True
+		tags = True
+		artwork = True
+		limit = "20"
+		url = "https://soundcloud.com/blacklabelnsd/sets/black-label-xl"
 		limit = int(limit)
 		if self.isValidSCUrl(url):
 			self.url = url
@@ -150,7 +158,7 @@ class SoundCloudDownload:
 		regex = re.compile("\/([a-zA-Z0-9]+)_")#call compile before loop to avoid repeat compilation
 		for track in resources:
 			try:
-				if self.scclient:
+				if self.scclient and type(track) is not dict:#double check resource is type resource
 					waveform_url = track.waveform_url
 					self.artworkURLList.append(track.artwork_url)
 					self.titleList.append(self.getTitleFilename(track.title))
@@ -302,9 +310,9 @@ if __name__ == "__main__":
 	parser.add_argument('-a', action='store_true', default=False, dest='IncludeArtwork', help='Include artwork in ID3 tag')
 	parser.add_argument('--l', action='store', default=20, dest='GetTracksLimit', help='How many tracks to get if multiple(Max of 200). Defaults to 20')
 	args = parser.parse_args()
-	if args.SoundCloudURL == None:
-		print('No arguments specified.')
-		exit()
-	else:
-		download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit)
-		download.downloadAudio()
+	#if args.SoundCloudURL == None:
+	#	print('No arguments specified.')
+	#	exit()
+	#else:
+	download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit)
+	download.downloadAudio()
