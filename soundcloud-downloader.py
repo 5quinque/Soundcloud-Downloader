@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# January 26, 2015
+# January 27, 2015
+#eventually replace tabs with spaces
 import urllib #update this eventually
 import sys
 import argparse #only include if you keep __main__
@@ -23,7 +24,8 @@ except ImportError:
 
 class SoundCloudDownload:
 	
-	def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret=''):
+	def __init__(self, url, verbose, tags, artwork, limit=20, clientid='fa730dce446649aec3708a5bfb4f60a3', clientsecret='dfd90cae169a656f1d661b6c1e4e9f7f'):
+		self._maxlimit = 200
 		limit = int(limit)
 		if self.isValidSCUrl(url):
 			self.url = url
@@ -52,7 +54,7 @@ class SoundCloudDownload:
 		self.artworkURLList = []
 		self.likes = False
 		self.stream = False
-		if limit < 201 and limit > 0:
+		if limit > 0:
 			self.limit = limit
 		else:
 			self.limit = 20
@@ -82,30 +84,32 @@ class SoundCloudDownload:
 					user = r.json()['id']
 				if self.likes:
 					if self.scclient:
-						span = math.ceil(req.public_favorites_count/float(200))
+						span = math.ceil(req.public_favorites_count/float(self._maxlimit))
 					else:
-						span = math.ceil(r.json()['public_favorites_count']/float(200))
+						span = math.ceil(r.json()['public_favorites_count']/float(self._maxlimit))
 				else:
 					if self.scclient:
-						span = math.ceil(req.track_count/float(200))
+						span = math.ceil(req.track_count/float(self._maxlimit))
 					else:
-						span = math.ceil(r.json()['track_count']/float(200))
+						span = math.ceil(r.json()['track_count']/float(self._maxlimit))
+                tracks_to_get = self.limit
 				for x in range(0, int(span)):
 					if self.likes:
 						if self.scclient:
-							api = self.scclient.get("/users/" + str(user) + "/favorites", limit=self.limit, offset=str(x * 200))
+							api = self.scclient.get("/users/" + str(user) + "/favorites", limit=tracks_to_get, offset=str(x * self._maxlimit))
 						else:
-							api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=" + self._client_id + "&limit=200&offset=" + str(x * 200)
+							api = "http://api.soundcloud.com/users/{0}/favorites.json?client_id={1}&limit={2}&offset={3}".format(str(user), self._client_id, str(tracks_to_get), str(x * self._maxlimit))
 					else:
 						if self.scclient:
-							api = self.scclient.get("/users/" + str(user) + "/tracks", limit=self.limit, offset=str(x * 200))
+							api = self.scclient.get("/users/" + str(user) + "/tracks", limit=tracks_to_get, offset=str(x * self._maxlimit))
 						else:
-							api = "http://api.soundcloud.com/users/" + str(user) + "/tracks.json?client_id=" + self._client_id + "&limit=200&offset=" + str(x * 200)
+							api = "http://api.soundcloud.com/users/{0}/tracks.json?client_id={1}&limit={2}&offset={3}".format(str(user), self._client_id, str(tracks_to_get), str(x * self._maxlimit))
 					if self.scclient:
 						tracks.extend(api)
 					else:
 						r = requests.get(api)
 						tracks.extend(r.json())
+                    tracks_to_get -= self._maxlimit
 			except:
 				try:
 					if self.scclient:
@@ -229,6 +233,8 @@ class SoundCloudDownload:
 
 	def downloadAudio(self):
 		done = False
+		print(str(len(self.streamURLlist)))###
+		exit()###
 		for artist, title, streamURL, artworkURL in zip(self.artistList, self.titleList, self.streamURLlist, self.artworkURLList):
 			if not done:
 				filename = "{0}.mp3".format(self.getTitleFilename(title))    
@@ -249,11 +255,11 @@ class SoundCloudDownload:
 						self.download_progress = 0
 						if self.tags:
 							self.addID3(title, artist, artworkURL)
-					elif self.likes:
-						print("File Exists")
-						done = True
 					else:
 						print("File Exists")
+				except KeyboardInterrupt:
+					print('Keyboard Interrupt Download Canceled')
+					exit()
 				except:
 					if self.verbose:
 						print("UNEXPECTED ERROR: ", sys.exc_info()[0]) #debugging
