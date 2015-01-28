@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# January 27, 2015
+#January 27, 2015
+#UPDATE UNTESTED
 import urllib #update this eventually
 import sys
 import argparse #only include if you keep __main__
@@ -7,7 +8,6 @@ import re
 import time
 import math
 import os
-import getpass
 import datetime
 
 #Third-Party modules
@@ -24,7 +24,7 @@ except ImportError:
 
 class SoundCloudDownload:
         
-        def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret=''):
+        def __init__(self, url, verbose, tags, artwork, limit=20, clientid='fa730dce446649aec3708a5bfb4f60a3', clientsecret='dfd90cae169a656f1d661b6c1e4e9f7f', uemail=None, password=None):
                 self._maxlimit = 200
                 limit = int(limit)
                 if self.isValidSCUrl(url):
@@ -56,6 +56,11 @@ class SoundCloudDownload:
                 self.artworkURLList = []
                 self.likes = False
                 self.stream = False
+                self.uemail = uemail
+                self.password = password
+                self.authenticated = False
+                if not self.uemail == None and not self.password == None:
+                        self.authenticated = True
                 if limit > 0:
                         self.limit = limit
                 else:
@@ -129,25 +134,28 @@ class SoundCloudDownload:
                                                 tracks = [r.json()]
                 else:
                         if self.scclient: #possibly can be done without soundcloud API module but I don't have that much time to play around
-                                print("Please give the program access to your stream by logging in.")
-                                sys.stdout.write("Username(Email Address): ")
-                                Username = self.verInput()
-                                Password = getpass.getpass()
-                                try:
-                                        self.scclient = soundcloud.Client(
-                                                client_id=self._client_id,
-                                                client_secret=self._client_secret,
-                                                username=Username,
-                                                password=Password
-                                        )
-                                except:
-                                        print("Password or Username was incorrect")
-                                        exit()
-                                trackjsondata = self.scclient.get('/me/activities/tracks/affiliated', limit=self.limit)
-                                for track in trackjsondata.collection:
-                                        tracks.append(track.origin)
+                                if self.authenticated:
+                                        try:
+                                                self.scclient = soundcloud.Client(
+                                                        client_id=self._client_id,
+                                                        client_secret=self._client_secret,
+                                                        username=self.uemail,
+                                                        password=self.password
+                                                )
+                                        except:
+                                                print("Password or Username was incorrect.")
+                                                exit()
+                                        trackjsondata = self.scclient.get('/me/activities/tracks/affiliated', limit=self.limit)
+                                        trackindex = 0
+                                        for track in trackjsondata.collection:#change to for loop with index later CONTROLS LIMITER
+                                                if trackindex == self.limit:
+                                                        break
+                                                tracks.append(track.origin)
+                                                trackindex += 1
+                                else:
+                                        print("No username or password given.")
                         else:
-                                print("Can't get your user stream without soundcloud API")
+                                print("Can't get user stream without soundcloud API.")#possibly can be done without API
                                 exit()
                 resources = []
                 try:
@@ -175,8 +183,8 @@ class SoundCloudDownload:
                                 pass
                 return streamList
 
-        def addID3(self, title, artist, artworkURL):
-                flname = "{0}.mp3".format(self.getTitleFilename(title))
+        def addID3(self, title, filepath, artist, artworkURL):
+                filename = "{0}{1}{2}.mp3".format(filepath, os.sep, self.getTitleFilename(title))
                 id3nfo = MP3(flname, ID3=ID3)
                 id3nfo.add_tags()
                 # Slicing is to get the whole track name
@@ -190,7 +198,7 @@ class SoundCloudDownload:
                         id3nfo.tags.add(TIT2(encoding=3, text=title))
                         id3nfo.tags.add(TPE1(encoding=3, text=artist))
                 if self.artwork and artworkURL:
-                        DldRes = self.downloadCoverImage((self.getTitleFilename(title) + " - Cover"), artworkURL)
+                        DldRes = self.downloadCoverImage(filepath, (self.getTitleFilename(title) + " - Cover"), artworkURL)
                         if DldRes[0]:
                                 id3nfo.tags.add(
                                         APIC(
@@ -210,8 +218,8 @@ class SoundCloudDownload:
                 if self.verbose:
                         print("\nID3 tags added")
 
-        def downloadCoverImage(self, filename, artworkURL):
-                filename = "{0}.jpg".format(self.getTitleFilename(filename))
+        def downloadCoverImage(self, filepath, filename, artworkURL):
+                filename = "{0}{1}{2}.jpg".format(filepath, os.sep, self.getTitleFilename(title))
                 sys.stdout.write("\nDownloading: {0}\n".format(filename))
                 try:
                         if not os.path.isfile(filename):
@@ -235,11 +243,13 @@ class SoundCloudDownload:
                         print("ERROR: Image is not retrievable.")
                         return (False, None)
 
-        def downloadAudio(self):
+        def downloadAudio(self, filepath=os.getcwd()):#use FILEPATH
+                if not os.path.isdir(filepath):
+                        filepath = os.getcwd()
                 done = False
                 for artist, title, streamURL, artworkURL in zip(self.artistList, self.titleList, self.streamURLlist, self.artworkURLList):
                         if not done:
-                                filename = "{0}.mp3".format(self.getTitleFilename(title))    
+                                filename = "{0}{1}{2}.mp3".format(filepath, os.sep, self.getTitleFilename(title))
                                 sys.stdout.write("\nDownloading: {0}\n".format(filename))
                                 try:
                                         if not os.path.isfile(filename):
@@ -256,13 +266,13 @@ class SoundCloudDownload:
                                                 # reset download progress to report multiple track download progress correctly
                                                 self.download_progress = 0
                                                 if self.tags:
-                                                        self.addID3(title, artist, artworkURL)
+                                                        self.addID3(title, filepath, artist, artworkURL)
                                                 else:
                                                         print()#print seperation normally placed by ID3 addition
                                         else:
                                                 print("File Exists")
                                 except KeyboardInterrupt:
-                                        print('Keyboard Interrupt Download Canceled')
+                                        print("Keyboard Interrupt Download Canceled")
                                         exit()
                                 except:
                                         if self.verbose:
@@ -287,15 +297,6 @@ class SoundCloudDownload:
                 #Cleans a title from Soundcloud to be filesystem friendly.
                 allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789-_()"
                 return ''.join(c for c in title if c in allowed)
-        
-        def verInput(self): #python 3 support
-                if sys.version_info[0] == 3:
-                        return input()
-                elif sys.version_info[0] == 2:
-                        return raw_input()
-                else:
-                        print("ERROR: Can't get input handle")
-                        exit()
 
         def isValidSCUrl(self, url):
                 if re.match(r'^https*://(www.)*soundcloud\.com/', url):
@@ -316,5 +317,5 @@ if __name__ == "__main__":
                 print('No arguments specified.')
                 exit()
         else:
-                download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit)
+                download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit, uemail=None, password=None)
                 download.downloadAudio()
