@@ -1,6 +1,5 @@
 #!/usr/bin/python
-#January 27, 2015
-#UPDATE UNTESTED
+#January 28, 2015
 import urllib #update this eventually
 import sys
 import argparse #only include if you keep __main__
@@ -23,7 +22,8 @@ except ImportError:
         pass
 
 class SoundCloudDownload:
-        
+
+        #begin private functions
         def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret='', uemail=None, password=None):
                 self._maxlimit = 200
                 limit = int(limit)
@@ -217,32 +217,22 @@ class SoundCloudDownload:
                         os.remove(DldRes[1])
                 if self.verbose:
                         print("\nID3 tags added")
-
-        def downloadCoverImage(self, filepath, filename, artworkURL):
-                filename = "{0}{1}{2}.jpg".format(filepath, os.sep, self.getTitleFilename(title))
-                sys.stdout.write("\nDownloading: {0}\n".format(filename))
-                try:
-                        if not os.path.isfile(filename):
-                                if sys.version_info[0] == 3:
-                                        if self.verbose:
-                                                filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
-                                        else:
-                                                filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename)
-                                else:
-                                        if self.verbose:
-                                                filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
-                                        else:
-                                                filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename)
-                                # reset download progress to report multiple track download progress correctly
-                                self.download_progress = 0
-                                return (True, filename) #tuple for fixed size and speed increase
+                                
+        def report(self, block_no, block_size, file_size):
+                if int(file_size) > 0:#added for python3 non-static file_size
+                        self.download_progress += block_size
+                        if int(self.download_progress / 1024 * 8) > 1000:
+                                speed = "{0:.2f} Mbps".format(round((self.download_progress / 1024 / 1024 * 8) / (time.time() - self.current_time), 2))
                         else:
-                                print("File Exists")
-                                return (True, filename)
-                except:
-                        print("ERROR: Image is not retrievable.")
-                        return (False, None)
+                                speed = "{0:.2f} Kbps".format(round((self.download_progress / 1024 * 8) / (time.time() - self.current_time), 2))
+                        rProgress = round(self.download_progress/1024.00/1024.00, 2)
+                        rFile = round(file_size/1024.00/1024.00, 2)
+                        percent = round(100 * float(self.download_progress)/float(file_size))
+                        sys.stdout.write("\r {3} ({0:.2f}/{1:.2f}MB): {2:.2f}%".format(rProgress, rFile, percent, speed))
+                        sys.stdout.flush()
+        #end private functions
 
+        #begin public functions
         def downloadAudio(self, filepath=os.getcwd()):#use FILEPATH
                 if not os.path.isdir(filepath):
                         filepath = os.getcwd()
@@ -278,21 +268,35 @@ class SoundCloudDownload:
                                         if self.verbose:
                                                 print("UNEXPECTED ERROR: ", sys.exc_info()[0]) #debugging
                                         print("ERROR: Author has not set song to streamable, so it cannot be downloaded")
-                        
-        def report(self, block_no, block_size, file_size):
-                if int(file_size) > 0:#added for python3 non-static file_size
-                        self.download_progress += block_size
-                        if int(self.download_progress / 1024 * 8) > 1000:
-                                speed = "{0:.2f} Mbps".format(round((self.download_progress / 1024 / 1024 * 8) / (time.time() - self.current_time), 2))
-                        else:
-                                speed = "{0:.2f} Kbps".format(round((self.download_progress / 1024 * 8) / (time.time() - self.current_time), 2))
-                        rProgress = round(self.download_progress/1024.00/1024.00, 2)
-                        rFile = round(file_size/1024.00/1024.00, 2)
-                        percent = round(100 * float(self.download_progress)/float(file_size))
-                        sys.stdout.write("\r {3} ({0:.2f}/{1:.2f}MB): {2:.2f}%".format(rProgress, rFile, percent, speed))
-                        sys.stdout.flush()
 
-        ## Convenience Methods
+        def downloadCoverImage(self, filepath, filename, artworkURL):
+                filename = "{0}{1}{2}.jpg".format(filepath, os.sep, self.getTitleFilename(title))
+                sys.stdout.write("\nDownloading: {0}\n".format(filename))
+                try:
+                        if not os.path.isfile(filename):
+                                if sys.version_info[0] == 3:
+                                        if self.verbose:
+                                                filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
+                                        else:
+                                                filename, headers = urllib.request.urlretrieve(url=artworkURL, filename=filename)
+                                else:
+                                        if self.verbose:
+                                                filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename, reporthook=self.report)
+                                        else:
+                                                filename, headers = urllib.urlretrieve(url=artworkURL, filename=filename)
+                                # reset download progress to report multiple track download progress correctly
+                                self.download_progress = 0
+                                return (True, filename) #tuple for fixed size and speed increase
+                        else:
+                                print("File Exists")
+                                return (True, filename)
+                except:
+                        print("ERROR: Image is not retrievable.")
+                        return (False, None)
+
+        #end public functions
+
+        #begin convenience functions
         def getTitleFilename(self, title):
                 #Cleans a title from Soundcloud to be filesystem friendly.
                 allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789-_()"
@@ -304,6 +308,7 @@ class SoundCloudDownload:
                 else:
                         print(url)
                         return False
+        #end convenience functions
 
 if __name__ == "__main__":
         parser = argparse.ArgumentParser(description='Download content from SoundCloud.')
