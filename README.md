@@ -1,14 +1,14 @@
 Used to download music files from SoundCloud.com even if the download button is not available.
 Just run the python script like:
 ------------
-$ soundcloud-downloader.py --d http://soundcloud.com/user/songname  
+$ soundcloud-downloader.py --d "http://soundcloud.com/user/songname"  
 or  
-$ soundcloud-downloader.py --d http://soundcloud.com/user/sets/setname  
+$ soundcloud-downloader.py --d "http://soundcloud.com/user/sets/setname"  
 or  
-$ soundcloud-downloader.py --d http://soundcloud.com/stream 
-
+$ soundcloud-downloader.py --d "http://soundcloud.com/stream" --u "user_email" --p "password"  
 Note: 
-Downloading from stream requires you use a password and username.
+Downloading from stream requires you use a password and username.  
+
 Help:
 ------------
 $ soundcloud-downloader.py -h for more options
