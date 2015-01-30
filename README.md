@@ -5,9 +5,9 @@ $ soundcloud-downloader.py --d http://soundcloud.com/user/songname
 or  
 $ soundcloud-downloader.py --d http://soundcloud.com/user/sets/setname  
 or  
-$ soundcloud-downloader.py --d http://soundcloud.com/stream
-Note:
-downloading from stream requires you use a password and username.
+$ soundcloud-downloader.py --d http://soundcloud.com/stream 
+Note: 
+Downloading from stream requires you use a password and username.
 
 Help:
 ------------
