@@ -319,10 +319,11 @@ if __name__ == "__main__":
         parser.add_argument('--l', action='store', default=20, dest='GetTracksLimit', help='How many tracks to get if multiple(Max of 200). Defaults to 20')
         parser.add_argument('--u', action='store', default=None, dest='UserEmail', help='User\'s email')
         parser.add_argument('--p', action='store', default=None, dest='UserPassword', help='User\'s password')
+        parser.add_argument('--D', action='store', default=None, dest='DownloadDirectory', help='Download directory (optional)')
         args = parser.parse_args()
         if args.SoundCloudURL == None:
                 print('No arguments specified.')
                 exit()
         else:
                 download = SoundCloudDownload(args.SoundCloudURL, verbose=args.IsVerbose, tags=args.IncludeTags, artwork=args.IncludeArtwork, limit=args.GetTracksLimit, uemail=args.UserEmail, password=args.UserPassword)
-                download.downloadAudio()
+                download.downloadAudio(args.DownloadDirectory)
