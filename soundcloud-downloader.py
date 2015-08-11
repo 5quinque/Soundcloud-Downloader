@@ -27,11 +27,10 @@ class SoundCloudDownload:
         def __init__(self, url, verbose, tags, artwork, limit=20, clientid='', clientsecret='', uemail=None, password=None):
                 self._maxlimit = 200
                 limit = int(limit)
-                if self.isValidSCUrl(url):
-                        self.url = url
-                else:
+                if not self.isValidSCUrl(url):
                         print('ERROR: Invalid SoundCloud URL')
                         exit()
+                self.url = url
                 self._client_id=clientid
                 self._client_secret=clientsecret
                 self.scclient = None
@@ -59,12 +58,8 @@ class SoundCloudDownload:
                 self.uemail = uemail
                 self.password = password
                 self.authenticated = False
-                if not self.uemail == None and not self.password == None:
-                        self.authenticated = True
-                if limit > 0:
-                        self.limit = limit
-                else:
-                        self.limit = 20
+                self.authenticated = (not self.uemail == None and not self.password == None)
+                self.limit = limit if limit > 0 else 20
                 self.streamURLlist = self.getStreamURLlist(self.url)
         
         def getStreamURLlist(self, url):
@@ -303,11 +298,7 @@ class SoundCloudDownload:
                 return ''.join(c for c in title if c in allowed)
 
         def isValidSCUrl(self, url):
-                if re.match(r'^https*://(www.)*soundcloud\.com/', url):
-                        return True
-                else:
-                        print(url)
-                        return False
+                return re.match(r'^https*://(www.)*soundcloud\.com/', url)
         #end convenience functions
 
 if __name__ == "__main__":
