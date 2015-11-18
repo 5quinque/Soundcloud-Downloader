@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# January 27, 2015
+# November 18, 2015
 import urllib #update this eventually
 import sys
 import argparse #only include if you keep __main__
@@ -24,7 +24,7 @@ except ImportError:
 
 class SoundCloudDownload:
         
-        def __init__(self, url, verbose, tags, artwork, limit=20, clientid='fa730dce446649aec3708a5bfb4f60a3', clientsecret='dfd90cae169a656f1d661b6c1e4e9f7f'):
+        def __init__(self, url, verbose, tags, artwork, limit=20, clientid='YOUR_CLIENT_ID', clientsecret='YOUR_CLIENT_SECRET'):
                 self._maxlimit = 200
                 limit = int(limit)
                 if self.isValidSCUrl(url):
@@ -154,7 +154,6 @@ class SoundCloudDownload:
                         resources.extend(tracks)#throws not iterable if single
                 except:
                         resources.append(tracks)
-                #for track in tracks:
                 regex = re.compile("\/([a-zA-Z0-9]+)_")#call compile before loop to avoid repeat compilation
                 for track in resources:
                         try:
@@ -163,14 +162,17 @@ class SoundCloudDownload:
                                         self.artworkURLList.append(track.artwork_url)
                                         self.titleList.append(self.getTitleFilename(track.title))
                                         self.artistList.append(track.user['username'])
+                                        stream_url = self.scclient.get(track.stream_url, allow_redirects=False)
+                                        streamList.append(stream_url.location)
                                 else:
                                         waveform_url = track['waveform_url']
                                         self.artworkURLList.append(track['artwork_url'])
                                         self.titleList.append(self.getTitleFilename(track['title']))
                                         self.artistList.append(track['user']['username'])
-                                r = regex.search(waveform_url)
-                                stream_id = r.groups()[0]
-                                streamList.append("http://media.soundcloud.com/stream/{0}".format(stream_id))
+                                        headers = {"Accept" : "application/json", "User-Agent" : "SoundCloud Python API Wrapper 0.5.0"}
+                                        api = "{0}?client_id={1}".format(track['stream_url'], self._client_id)
+                                        r = requests.get(api,allow_redirects=False , headers=headers)
+                                        streamList.append(r.json()["location"])
                         except AttributeError:#if tracks are from stream, skip any non track
                                 pass
                 return streamList
