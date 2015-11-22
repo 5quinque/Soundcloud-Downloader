@@ -9,7 +9,9 @@ $ soundcloud-downloader.py --d "http://soundcloud.com/stream" --u "user_email" -
 NOTE** 
 Downloading from stream requires that you use a password and username.  
 add -v for verbose
+    
     -t for id3 tags(requires mutagen)
+    
     -a for artwork(requires mutagen and -t argument)
 
 Help:
