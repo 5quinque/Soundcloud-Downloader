@@ -160,7 +160,13 @@ class SoundCloudDownload:
                     self.titleList.append(self.getTitleFilename(track.title))
                     self.artistList.append(track.user['username'])
                     stream_url = self.scclient.get(track.stream_url, allow_redirects=False)
-                    streamList.append(stream_url.location)
+                else:
+                    waveform_url = track['waveform_url']#track is in json form
+                    self.artworkURLList.append(track['artwork_url'])
+                    self.titleList.append(self.getTitleFilename(track['title']))
+                    self.artistList.append(track['user']['username'])
+                    stream_url = self.scclient.get(track["stream_url"], allow_redirects=False)
+                streamList.append(stream_url.location)
             except AttributeError:
                 pass  # if tracks are from stream, skip any non track
         return streamList
