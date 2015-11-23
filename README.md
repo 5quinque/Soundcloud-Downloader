@@ -1,4 +1,4 @@
-Used to download music files from SoundCloud.com even if the download button is not available.
+Used to download music files from SoundCloud.com even if the download button is not available.<br>
 **NOTE**: This script requires an API Key from soundcloud (http://soundcloud.com/you/apps)
 Just run the python script like:
 ------------
