@@ -111,7 +111,7 @@ class SoundCloudDownload:
         if not self.stream:
             req = self.scclient.get('/resolve', url=url)
             try:
-                user = req.username  # check resource is username resource
+                req.username  # check resource is username resource
                 user = req.id  # overwrite with UID
                 span = math.ceil(req.public_favorites_count / float(self._maxlimit)) if self.likes else math.ceil(
                     req.track_count / float(self._maxlimit))
