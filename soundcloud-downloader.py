@@ -22,16 +22,18 @@ class SoundCloudDownload:
       self.current_time = time.time()
       self.titleList = []
       self.artistList = []
-      self.likes = False   
-      self.streamURLlist = self.getStreamURLlist(self.url)
+      self.likes = False
+      self.client_id = "YOUR_CLIENT_ID"
+      self.streamURLlist = self.getStreamURLlist(self.url, self.client_id)
 
-   def getStreamURLlist(self, url):
+   def getStreamURLlist(self, url, client_id):
       streamList = []
       tracks = []
       if "/likes" in url:
          url = url[:-6]
          self.likes = True
-      api = "http://api.soundcloud.com/resolve.json?url={0}&client_id=YOUR_CLIENT_ID".format(url)
+         print(self.likes)
+      api = "http://api.soundcloud.com/resolve.json?url={0}&client_id={1}".format(url, client_id)
       r = requests.get(api)
       try:
          user = r.json()['username']
@@ -40,9 +42,10 @@ class SoundCloudDownload:
 
          for x in range(0, int(span)):
             if self.likes:
-               api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
+               api = "http://api.soundcloud.com/users/" + str(user) + "/favorites.json?client_id={0}&limit=200&offset=".format(client_id) + str(x * 200)
+               print api
             else:
-               api = "http://api.soundcloud.com/users/" + str(user) + "/tracks.json?client_id=fc6924c8838d01597bab5ab42807c4ae&limit=200&offset=" + str(x * 200)
+               api = "http://api.soundcloud.com/users/" + str(user) + "/tracks.json?client_id={0}&limit=200&offset=".format(client_id) + str(x * 200)
             r = requests.get(api)
             tracks.extend(r.json())
       except:
@@ -58,8 +61,9 @@ class SoundCloudDownload:
          self.artistList.append(track['user']['username'])
          regex = re.compile("\/([a-zA-Z0-9]+)_")
          r = regex.search(waveform_url)
-         stream_id = r.groups()[0]
-         streamList.append("http://media.soundcloud.com/stream/{0}".format(stream_id))
+         stream_id = track['id']
+
+         streamList.append("https://api.soundcloud.com/tracks/" + str(stream_id) + "/stream?client_id={0}".format(client_id))
       return streamList
 
    def addID3(self, title, artist):
@@ -88,6 +92,7 @@ class SoundCloudDownload:
             try:
                if not os.path.isfile(filename):
                   filename, headers = urllib.urlretrieve(url=streamURL, filename=filename, reporthook=self.report)
+
                   self.addID3(title, artist)
                   # reset download progress to report multiple track download progress correctly
                   self.download_progress = 0
@@ -96,7 +101,8 @@ class SoundCloudDownload:
                   done = True
                else:
                   print "File Exists"
-            except:
+            except Exception as e:
+               print e
                print "ERROR: Author has not set song to streamable, so it cannot be downloaded"
    
    def report(self, block_no, block_size, file_size):
