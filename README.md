@@ -8,9 +8,3 @@ $ soundcloud-downloader.py http://soundcloud.com/user/sets/setname
 Requirements
 ------------
 
-Mutagen (for ID3 name tagging)
-https://bitbucket.org/lazka/mutagen/downloads
-OR `pip install mutagen`
-
-Requests (for downloading SoundCloud pages)
-pip install requests
