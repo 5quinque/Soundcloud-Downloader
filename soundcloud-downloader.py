@@ -1,14 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 import sys
 import re
-import urllib2
+from urllib.request import urlopen
 import requests
 
 # SoundCloud streaming Client ID
-CLIENTID="Oa1hmXnTqqE7F2PKUpRdMZqWoguyDLV0"
+CLIENTID="NmW1FlPaiL94ueEu7oziOWjYEzZzQDcK"
 
 def download_file(url, filename):
-  f = urllib2.urlopen(url)
+  f = urlopen(url)
   with open(filename, "wb") as song:
     song.write(f.read())
 

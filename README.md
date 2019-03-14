@@ -8,3 +8,5 @@ $ soundcloud-downloader.py http://soundcloud.com/user/sets/setname
 Requirements
 ------------
 
+urllib3
+requests
