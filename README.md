@@ -18,3 +18,7 @@ Download songs from SoundCloud.com even if the download button is not available
 ```
 sudo ./setup.py install
 ```
+or
+```
+pip install -r requirements.txt
+```
