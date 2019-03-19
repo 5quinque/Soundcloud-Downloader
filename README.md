@@ -1,12 +1,20 @@
-Used to download music files from SoundCloud.com even if the download button is not available
+# Soundcloud-Download
 
-Just run the python script like:  
-$ soundcloud-downloader.py http://soundcloud.com/user/songname  
-or  
-$ soundcloud-downloader.py http://soundcloud.com/user/sets/setname
+Download songs from SoundCloud.com even if the download button is not available
 
-Requirements
-------------
+## Usage
 
-urllib3
-requests
+```
+./soundcloud-downloader.py http://soundcloud.com/user/songname  
+```
+
+## Requirements
+
+- urllib3
+- requests
+
+### Installing requirements
+
+```
+sudo ./setup.py install
+```
